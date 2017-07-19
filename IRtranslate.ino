@@ -38,8 +38,8 @@ const xlat_entry xlat_table[] = {
   { { RC5, 0xF87 /* 7 */, 26},         { 0x4FB9867 /* timer */, 0 } },
   { { RC5, 0x788 /* 8 */, 22},         { 0x4FB8877 /* down */, 0 } },
   { { RC5, 0xF88 /* 8 */, 24},         { 0x4FB8877 /* down */, 0 } },
-//  { { RC5, 0x78A /* * */, 20},         { ?          /* cancel timer */, 0 } },
-//  { { RC5, 0xF8A /* * */, 22},         { ?          /* cancel timer */, 0 } },
+  { { RC5, 0x78A /* * */, 20},         { 0x4FB48B7 /* cancel timer */, 3 } },
+  { { RC5, 0xF8A /* * */, 22},         { 0x4FB48B7 /* cancel timer */, 3 } },
   { { RC5, 0x780 /* 0 */, 24},         { 0x4FB00FF /* celsius/fahrenheit */, 0 } },
   { { RC5, 0xF80 /* 0 */, 26},         { 0x4FB00FF /* celsius/fahrenheit */, 0 } },  
 
@@ -59,8 +59,8 @@ const xlat_entry xlat_table[] = {
   { { RC5, 0xF91 /* Vol Down */, 24},  { 0x4FB8877 /* down */, 0 } },
   { { RC5, 0x78D /* Menu(i) */, 22},   { 0x4FB9867 /* timer */, 0 } },
   { { RC5, 0xF8D /* Menu(i) */, 24},   { 0x4FB9867 /* timer */, 0 } },
-//  { { RC5, 0x79F /* Back/Exit */, 24}, { ?          /* cancel timer */, 0 } },
-//  { { RC5, 0xF9F /* Back/Exit */, 26}, { ?          /* cancel timer */, 0 } },
+  { { RC5, 0x79F /* Back/Exit */, 24}, { 0x4FB48B7 /* cancel timer */, 3 } },
+  { { RC5, 0xF9F /* Back/Exit */, 26}, { 0x4FB48B7 /* cancel timer */, 3 } },
   { { RC5, 0x78E /* #/Sub/CC */, 22},         { 0x4FB00FF /* celsius/fahrenheit */, 0 } },
   { { RC5, 0xF8E /* #/Sub/CC */, 24},         { 0x4FB00FF /* celsius/fahrenheit */, 0 } },  
   
@@ -74,7 +74,7 @@ const xlat_entry xlat_table[] = {
   { { NEC, 0xFF8A75, 68}, { 0x4FB50AF /* up */, 0 } },
   { { NEC, 0xFF38C7, 68}, { 0x4FB9867 /* timer */, 0 } },
   { { NEC, 0xFFB847, 68}, { 0x4FB8877 /* down */, 0 } },
-//  { { NEC, 0xFF18E7, 68}, { ?          /* cancel timer */, 0 } },
+  { { NEC, 0xFF18E7, 68}, { 0x4FB48B7 /* cancel timer */, 3 } },
   { { NEC, 0xFF9867, 68}, { 0x4FB00FF /* celsius/fahrenheit */, 0 } },  
 #endif
 
