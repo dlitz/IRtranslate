@@ -1,5 +1,10 @@
-// by Dwayne Litzenberger
-// Simulate Danby DPAC5011 IR remote
+// by Darsey Litzenberger
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// Receives an IR signal, and then transmits a different one according to a lookup table.
+// Originally written to simulate a Danby DPAC5011 IR remote.
+
+// Library dependency: IRremote v2.2.3 -- https://github.com/shirriff/Arduino-IRremote.git
+// IRremote is licenced under the GNU LGPL 2.1
 #include <IRremote.h>
 
 typedef struct {
@@ -14,6 +19,8 @@ typedef struct {
   } out;
 } xlat_entry;
 
+#define TOGGLE_ENABLE   0xFFFFFF01ul
+
 const xlat_entry xlat_table[] = {
 #if 0
   /* TV remote -> HDMI switch */
@@ -22,6 +29,7 @@ const xlat_entry xlat_table[] = {
   { { SAMSUNG, 0xE0E0A857 /* C */, 68 },    { 0x1FEA05F /* 3 */, 3 } },
   { { SAMSUNG, 0xE0E06897 /* D */, 68 },    { 0x1FE609F /* 4 */, 3 } },
   { { SAMSUNG, 0xE0E0629D /* STOP */, 68 }, { 0x1FE10EF /* 5 */, 3 } },
+  { { SAMSUNG, 0xE0E052AD /* PAUSE */, 68 },  { TOGGLE_ENABLE, 0 } },
 #endif
 
 #if 0
@@ -76,6 +84,7 @@ const xlat_entry xlat_table[] = {
   { { NEC, 0xFFB847, 68}, { 0x4FB8877 /* down */, 0 } },
   { { NEC, 0xFF18E7, 68}, { 0x4FB48B7 /* cancel timer */, 3 } },
   { { NEC, 0xFF9867, 68}, { 0x4FB00FF /* celsius/fahrenheit */, 0 } },  
+  { { NEC, 0xFF50AF /* DIY6 */, 68}, { TOGGLE_ENABLE, 0 } },  /* 'DIY6' button enables/disables translation. */
 #endif
 
   { { UNUSED, 0, 0}, {0} }
@@ -93,20 +102,20 @@ const xlat_entry *nextCode = NULL;
 #define REPEAT_MILLIS 100
 #define SILENCE_MILLIS 150
 
-void dumpResults(decode_results &results) {
-    Serial.print("decode_type: ");
+void dumpResults(const decode_results &results) {
+    Serial.print(F("decode_type: "));
     Serial.print(results.decode_type);
-    Serial.print(" address: ");
+    Serial.print(F(" address: "));
     Serial.print(results.address, HEX);
-    Serial.print(" value: ");
+    Serial.print(F(" value: "));
     Serial.print(results.value, HEX);
-    Serial.print(" bits: ");
+    Serial.print(F(" bits: "));
     Serial.print(results.bits);
-    Serial.print(" overflow: ");
+    Serial.print(F(" overflow: "));
     Serial.print(results.overflow);
-    Serial.print(" rawlen: ");
+    Serial.print(F(" rawlen: "));
     Serial.print(results.rawlen);
-    Serial.println("");
+    Serial.println(F(""));
 }
 
 bool enable = false;
@@ -114,7 +123,16 @@ bool enable = false;
 void setup() {
   Serial.begin(9600);
   irrecv.enableIRIn();
-  Serial.println("Ready");
+  Serial.println(F(""));
+  Serial.println(F(""));
+  Serial.println(F("// IRtranslate 2017-2019 by Darsey Litzenberger"));
+  Serial.println(F("// Includes code from Arduino, and the IRremote library by shirriff."));
+  Serial.println(F("// The firmware is distributed under the terms of the GNU Lesser General Public License v2.1"));
+  Serial.println(F("// Not available online as of this writing, but may end up on GitHub at some point at:"));
+  Serial.println(F("// https://github.com/dlitz/IRtranslate"));
+  Serial.println(F("// or somewhere at https://www.dlitz.net/software/"));
+  Serial.println(F(""));
+  Serial.println(F("Ready"));
   lastTime = micros() - REPEAT_MILLIS;
   enable = false;
 }
@@ -126,7 +144,7 @@ void loop() {
   if (irrecv.decode(&results)) {
     unsigned long time = millis();
     
-    // Simulate REPEAT
+    // Simulate REPEAT, i.e. debounce button presses
     if (lastValue == results.value && (signed long) (time - lastTime) < REPEAT_MILLIS) {
       results.value = REPEAT;
     } else {
@@ -136,24 +154,27 @@ void loop() {
     irrecv.resume();
     dumpResults(results);
 
-    if (results.decode_type == NEC && results.rawlen == 68 && results.value == 0xFF50AF) {
-      /* 'DIY6' button enables/disables translation. */
-      enable = !enable;
-      Serial.println(enable ? "Enabled" : "Disabled");
-    } else if (enable) {
-      for (const xlat_entry *e = xlat_table; e->in.decode_type != UNUSED; e++) {
-        if (e->in.decode_type == results.decode_type &&
-            e->in.value == results.value &&
-            e->in.rawlen == results.rawlen)
-        {
-          // We can't send the code right away; we must wait until the
-          // 38 kHz IR channel is idle before transmitting, to avoid
-          // collisions.
-          nextCode = e;
-          Serial.println("Queued code");
-          break;
-        }
+    const xlat_entry *e = NULL;
+    if (results.value == REPEAT) {
+      Serial.println(F("Ignoring REPEAT"));
+    } else if ((e = lookup(results)) && e != NULL) {
+//    if (e != NULL) {
+      if (e->out.value == TOGGLE_ENABLE) {
+        /* Special button that enables/disables translation. */
+        enable = !enable;
+        Serial.println(enable ? F("Enabled") : F("Disabled"));
+
+      } else if (enable) {
+        // We can't send the code right away; we must wait until the
+        // 38 kHz IR channel is idle before transmitting, to avoid
+        // collisions.
+        nextCode = e;
+        Serial.println(F("Queued code"));
+      } else {
+        Serial.println(F("Ignoring (not yet enabled)"));
       }
+    } else {
+      Serial.println(F("xlat_lookup returned NULL"));
     }
     
     lastTime = time = millis();
@@ -170,9 +191,9 @@ void loop() {
         irsend.sendNEC(nextCode->out.value, 32);
       }
 
-      Serial.print("Sent queued code: ");
+      Serial.print(F("Sent queued code: "));
       Serial.print(nextCode->out.value, HEX);
-      Serial.println("");
+      Serial.println(F(""));
       nextCode = 0;
       lastTime = time = millis();
   
@@ -188,4 +209,17 @@ void loop() {
   } else {
     digitalWrite(blinkLEDPin, irrecv.isIdle() ? LOW : HIGH);
   }
+}
+
+const xlat_entry *lookup(const decode_results & results) {
+  // Look up IR code in the translation table
+  for (const xlat_entry *e = xlat_table; e->in.decode_type != UNUSED; e++) {
+    if (e->in.decode_type == results.decode_type &&
+        e->in.value == results.value &&
+        e->in.rawlen == results.rawlen)
+    {
+      return e;
+    }
+  }
+  return NULL;
 }
