@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 // Receives an IR signal, and then transmits a different one according to a lookup table.
 // Originally written to simulate a Danby DPAC5011 IR remote.
+//
+// Arduino IDE settings:
+//  Board: Arduino Nano
+//  Processor: ATmega328P (old bootloader)
 
 // Library dependency: IRremote v2.2.3 -- https://github.com/shirriff/Arduino-IRremote.git
 // IRremote is licenced under the GNU LGPL 2.1
