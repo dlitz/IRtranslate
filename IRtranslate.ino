@@ -121,7 +121,7 @@ void dumpResults(const decode_results &results) {
 bool enable = false;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   irrecv.enableIRIn();
   Serial.println(F(""));
   Serial.println(F(""));
@@ -158,7 +158,6 @@ void loop() {
     if (results.value == REPEAT) {
       Serial.println(F("Ignoring REPEAT"));
     } else if ((e = lookup(results)) && e != NULL) {
-//    if (e != NULL) {
       if (e->out.value == TOGGLE_ENABLE) {
         /* Special button that enables/disables translation. */
         enable = !enable;
