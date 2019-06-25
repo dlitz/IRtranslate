@@ -128,9 +128,7 @@ void setup() {
   Serial.println(F("// IRtranslate 2017-2019 by Darsey Litzenberger"));
   Serial.println(F("// Includes code from Arduino, and the IRremote library by shirriff."));
   Serial.println(F("// The firmware is distributed under the terms of the GNU Lesser General Public License v2.1"));
-  Serial.println(F("// Not available online as of this writing, but may end up on GitHub at some point at:"));
-  Serial.println(F("// https://github.com/dlitz/IRtranslate"));
-  Serial.println(F("// or somewhere at https://www.dlitz.net/software/"));
+  Serial.println(F("// https://www.dlitz.net/software/IRtranslate"));
   Serial.println(F(""));
 
   // Power-on testing: Blink output LED
