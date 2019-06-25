@@ -132,6 +132,17 @@ void setup() {
   Serial.println(F("// https://github.com/dlitz/IRtranslate"));
   Serial.println(F("// or somewhere at https://www.dlitz.net/software/"));
   Serial.println(F(""));
+
+  // Power-on testing: Blink output LED
+  pinMode(SEND_PIN, OUTPUT);
+  digitalWrite(SEND_PIN, HIGH);
+  delay(250);
+  digitalWrite(SEND_PIN, LOW);
+  delay(250);
+
+  // Power-on testing: Send dummy IR value
+  irsend.sendNEC(0xAAAAAAAA, 32);
+
   Serial.println(F("Ready"));
   lastTime = micros() - REPEAT_MILLIS;
   enable = false;
